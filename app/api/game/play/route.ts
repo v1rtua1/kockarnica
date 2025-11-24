@@ -55,16 +55,26 @@ export async function POST(req: Request) {
             }
         })
 
-        // Record Bet
-        await prisma.bet.create({
-            data: {
-                userId: user.id,
-                gameId: gameId,
-                amount: bet,
-                payout: result.payout,
-                result: result.payout > 0 ? "WIN" : "LOSS"
+        // Record Bet (Best Effort)
+        try {
+            const gameRecord = await prisma.game.findUnique({ where: { slug: gameId } })
+            if (gameRecord) {
+                await prisma.bet.create({
+                    data: {
+                        userId: user.id,
+                        gameId: gameRecord.id,
+                        amount: bet,
+                        payout: result.payout,
+                        result: result.payout > 0 ? "WIN" : "LOSS"
+                    }
+                })
+            } else {
+                console.warn(`[GAME_PLAY] Game record not found for slug: ${gameId}`)
             }
-        })
+        } catch (betError) {
+            console.error("[GAME_PLAY] Failed to record bet:", betError)
+            // Do not fail the transaction if logging fails
+        }
 
         if (result.payout > 0) {
             await prisma.transaction.create({
