@@ -17,7 +17,9 @@ export const metadata: Metadata = {
   description: "Experience the thrill of premium online gaming",
   icons: {
     icon: "/icon.svg",
-  }
+    apple: "/icon.svg",
+  },
+  manifest: "/manifest.json",
 };
 
 import { Providers } from "@/components/Providers";
