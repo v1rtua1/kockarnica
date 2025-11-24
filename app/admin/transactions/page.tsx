@@ -69,7 +69,11 @@ export default function AdminTransactionsPage() {
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-slate-300">{tx.user.email}</TableCell>
-                                <TableCell className={tx.type === "DEPOSIT" ? "text-green-400" : "text-red-400"}>
+                                <TableCell className={
+                                    tx.type === "DEPOSIT" || tx.type === "GAME_WIN"
+                                        ? "text-green-400"
+                                        : "text-red-400"
+                                }>
                                     ${tx.amount.toFixed(2)}
                                 </TableCell>
                                 <TableCell>

@@ -55,6 +55,17 @@ export async function POST(req: Request) {
             }
         })
 
+        // Record Bet
+        await prisma.bet.create({
+            data: {
+                userId: user.id,
+                gameId: gameId,
+                amount: bet,
+                payout: result.payout,
+                result: result.payout > 0 ? "WIN" : "LOSS"
+            }
+        })
+
         if (result.payout > 0) {
             await prisma.transaction.create({
                 data: {

@@ -21,22 +21,36 @@ interface UserProfile {
     createdAt: string
 }
 
+interface Bet {
+    id: string
+    game: {
+        name: string
+    }
+    amount: number
+    payout: number
+    result: string
+    createdAt: string
+}
+
 export default function ProfilePage() {
     const { data: session, status } = useSession()
     const router = useRouter()
     const [profile, setProfile] = useState<UserProfile | null>(null)
+    const [bets, setBets] = useState<Bet[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         if (status === "unauthenticated") {
             router.push("/login")
         } else if (status === "authenticated") {
-            fetch("/api/user/profile")
-                .then(res => res.json())
-                .then(data => {
-                    setProfile(data)
-                    setLoading(false)
-                })
+            Promise.all([
+                fetch("/api/user/profile").then(res => res.json()),
+                fetch("/api/user/bets").then(res => res.json())
+            ]).then(([profileData, betsData]) => {
+                setProfile(profileData)
+                setBets(betsData)
+                setLoading(false)
+            })
         }
     }, [status, router])
 
@@ -127,6 +141,58 @@ export default function ProfilePage() {
                                         <p className="text-white">{profile?.bio || "No bio yet."}</p>
                                     </div>
                                 </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Bet History Card */}
+                    <Card className="md:col-span-3 bg-neutral-900/50 border-white/10 backdrop-blur-xl">
+                        <CardHeader>
+                            <CardTitle className="text-xl text-white">Game History</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm text-neutral-400">
+                                    <thead className="text-xs uppercase bg-white/5 text-neutral-300">
+                                        <tr>
+                                            <th className="px-4 py-3 rounded-l-lg">Game</th>
+                                            <th className="px-4 py-3">Result</th>
+                                            <th className="px-4 py-3">Bet</th>
+                                            <th className="px-4 py-3">Payout</th>
+                                            <th className="px-4 py-3 rounded-r-lg">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {bets.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
+                                                    No games played yet.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            bets.map((bet) => (
+                                                <tr key={bet.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                                    <td className="px-4 py-3 font-medium text-white">{bet.game.name}</td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`px-2 py-1 rounded text-xs font-medium ${bet.result === "WIN"
+                                                                ? "bg-green-500/10 text-green-400 border border-green-500/20"
+                                                                : "bg-red-500/10 text-red-400 border border-red-500/20"
+                                                            }`}>
+                                                            {bet.result}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-white">${bet.amount.toFixed(2)}</td>
+                                                    <td className={`px-4 py-3 font-medium ${bet.payout > 0 ? "text-green-400" : "text-neutral-500"}`}>
+                                                        ${bet.payout.toFixed(2)}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-neutral-500">
+                                                        {new Date(bet.createdAt).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
                             </div>
                         </CardContent>
                     </Card>
