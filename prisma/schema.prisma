@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String?   @unique
+  passwordHash  String
+  role          String    @default("USER") // USER, ADMIN
+  balance       Float     @default(0.0)
+  phoneNumber   String?
+  bio           String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bets          Bet[]
+  transactions  Transaction[]
+}
+
+model Game {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  type        String   // SLOT, CARD, TABLE
+  isActive    Boolean  @default(true)
+  rtp         Float    @default(0.95) // Return to Player percentage
+  bets        Bet[]
+}
+
+model Bet {
+  id          String   @id @default(cuid())
+  userId      String
+  gameId      String
+  amount      Float
+  payout      Float    @default(0.0)
+  result      String   // WIN, LOSS
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+  game        Game     @relation(fields: [gameId], references: [id])
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  userId    String
+  amount    Float
+  type      String   // DEPOSIT, WITHDRAWAL
+  status    String   @default("COMPLETED") // PENDING, COMPLETED, FAILED
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
