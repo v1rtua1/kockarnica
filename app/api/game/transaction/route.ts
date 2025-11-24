@@ -57,6 +57,53 @@ export async function POST(req: Request) {
             }
         })
 
+        // Handle Bet History for Classic Slots (which uses this endpoint)
+        if (game) {
+            const gameSlug = game.toLowerCase().replace(/_/g, "-")
+            const gameRecord = await prisma.game.findUnique({
+                where: { slug: "classic-slots" } // Assuming this endpoint is mainly for classic slots or we map 'game' param
+            })
+
+            // If we can't find by exact slug, try to find by name or just default to classic-slots if that's the only one using this
+            // The frontend sends "CLASSIC_SLOTS" usually.
+
+            if (gameRecord) {
+                if (action === "BET") {
+                    // Create a new Bet record (assume LOSS initially)
+                    await prisma.bet.create({
+                        data: {
+                            userId: user.id,
+                            gameId: gameRecord.id,
+                            amount: amount,
+                            payout: 0,
+                            result: "LOSS"
+                        }
+                    })
+                } else if (action === "WIN") {
+                    // Find the most recent LOSS bet for this user and game to update it
+                    // This is a bit loose but works for this simple flow
+                    const lastBet = await prisma.bet.findFirst({
+                        where: {
+                            userId: user.id,
+                            gameId: gameRecord.id,
+                            result: "LOSS"
+                        },
+                        orderBy: { createdAt: "desc" }
+                    })
+
+                    if (lastBet) {
+                        await prisma.bet.update({
+                            where: { id: lastBet.id },
+                            data: {
+                                payout: amount,
+                                result: "WIN"
+                            }
+                        })
+                    }
+                }
+            }
+        }
+
         return NextResponse.json({ balance: newBalance })
 
     } catch (error) {
