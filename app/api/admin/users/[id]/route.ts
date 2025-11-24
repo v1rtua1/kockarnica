@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params
         const body = await req.json()
         const { balance, role } = body
 
@@ -12,7 +13,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         if (role !== undefined) updateData.role = role
 
         const user = await prisma.user.update({
-            where: { id: params.id },
+            where: { id },
             data: updateData
         })
 
@@ -26,10 +27,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params
         await prisma.user.delete({
-            where: { id: params.id }
+            where: { id }
         })
         return NextResponse.json({ success: true })
     } catch (error) {
