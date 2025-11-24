@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Casino Royale",
   description: "Experience the thrill of premium online gaming",
   icons: {
-    icon: "/file.svg", // Using existing SVG as placeholder for CR logo
+    icon: "/icon.svg",
   }
 };
 
