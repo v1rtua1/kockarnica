@@ -39,11 +39,41 @@ export async function GET(req: Request) {
             }
         })
 
+        // Calculate last 7 days registrations
+        const sevenDaysAgo = new Date()
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6)
+        sevenDaysAgo.setHours(0, 0, 0, 0)
+
+        const dailyStats = await Promise.all(
+            Array.from({ length: 7 }).map(async (_, i) => {
+                const date = new Date(sevenDaysAgo)
+                date.setDate(date.getDate() + i)
+
+                const nextDate = new Date(date)
+                nextDate.setDate(date.getDate() + 1)
+
+                const count = await prisma.user.count({
+                    where: {
+                        createdAt: {
+                            gte: date,
+                            lt: nextDate
+                        }
+                    }
+                })
+
+                return {
+                    date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                    count
+                }
+            })
+        )
+
         return NextResponse.json({
             totalUsers,
             totalBalance,
             activeUsers,
-            recentActivity
+            recentActivity,
+            dailyStats
         })
     } catch (error) {
         console.error("Admin stats error:", error)

@@ -9,6 +9,7 @@ interface Stats {
     totalBalance: number
     activeUsers: number
     recentActivity: any[]
+    dailyStats: { date: string; count: number }[]
 }
 
 export default function AdminDashboard() {
@@ -27,6 +28,9 @@ export default function AdminDashboard() {
 
     if (loading) return <div className="text-white">Loading stats...</div>
 
+    // Calculate max value for chart scaling
+    const maxUsers = stats?.dailyStats ? Math.max(...stats.dailyStats.map(d => d.count), 10) : 10
+
     return (
         <div className="space-y-8">
             <h2 className="text-3xl font-bold text-white">Dashboard Overview</h2>
@@ -40,7 +44,7 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-white">{stats?.totalUsers}</div>
-                        <p className="text-xs text-slate-500 mt-1">+2 from last week</p>
+                        <p className="text-xs text-slate-500 mt-1">Registered users</p>
                     </CardContent>
                 </Card>
 
@@ -72,7 +76,7 @@ export default function AdminDashboard() {
                         <TrendingUp className="w-4 h-4 text-purple-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-white">$12,450.00</div>
+                        <div className="text-2xl font-bold text-white">$0.00</div>
                         <p className="text-xs text-slate-500 mt-1">Estimated monthly</p>
                     </CardContent>
                 </Card>
@@ -83,20 +87,25 @@ export default function AdminDashboard() {
                 {/* Simple Activity Chart */}
                 <Card className="bg-slate-900 border-slate-800 col-span-2">
                     <CardHeader>
-                        <CardTitle className="text-white">User Activity</CardTitle>
+                        <CardTitle className="text-white">User Registration Activity (Last 7 Days)</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="h-[300px] flex items-end gap-4 p-4 border-b border-l border-slate-700">
-                            {[40, 65, 30, 80, 55, 90, 45].map((h, i) => (
-                                <div key={i} className="flex-1 bg-blue-500/20 hover:bg-blue-500/40 transition-colors rounded-t-sm relative group" style={{ height: `${h}%` }}>
-                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {h} Users
+                            {stats?.dailyStats?.map((day, i) => {
+                                const heightPercentage = (day.count / maxUsers) * 100
+                                return (
+                                    <div key={i} className="flex-1 bg-blue-500/20 hover:bg-blue-500/40 transition-colors rounded-t-sm relative group" style={{ height: `${heightPercentage}%` }}>
+                                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                                            {day.count} Users ({day.date})
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                         </div>
                         <div className="flex justify-between mt-4 text-sm text-slate-500">
-                            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                            {stats?.dailyStats?.map((day, i) => (
+                                <span key={i}>{day.date}</span>
+                            ))}
                         </div>
                     </CardContent>
                 </Card>

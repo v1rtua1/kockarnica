@@ -82,6 +82,27 @@ export default function AdminUsersPage() {
         }
     }
 
+    const handleRoleToggle = async (user: User) => {
+        const newRole = user.role === "ADMIN" ? "USER" : "ADMIN"
+        const action = newRole === "ADMIN" ? "promote this user to ADMIN" : "revoke ADMIN rights from this user"
+
+        if (!confirm(`Are you sure you want to ${action}?`)) return
+
+        try {
+            const res = await fetch(`/api/admin/users/${user.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ role: newRole })
+            })
+
+            if (res.ok) {
+                fetchUsers()
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -132,6 +153,17 @@ export default function AdminUsersPage() {
                                     >
                                         <Wallet className="w-4 h-4 mr-1" /> Funds
                                     </Button>
+
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className={`border-yellow-500/50 ${user.role === 'ADMIN' ? 'text-yellow-400 bg-yellow-500/10' : 'text-slate-400 hover:text-yellow-400'}`}
+                                        onClick={() => handleRoleToggle(user)}
+                                        title={user.role === 'ADMIN' ? "Revoke Admin" : "Make Admin"}
+                                    >
+                                        <UserCog className="w-4 h-4" />
+                                    </Button>
+
                                     <Button
                                         size="sm"
                                         variant="destructive"
