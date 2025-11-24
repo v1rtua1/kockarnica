@@ -21,8 +21,12 @@ function playKeno(bet: number, params: { selectedNumbers: number[] }): GameResul
         throw new Error("Invalid selection")
     }
 
-    // RIGGED LOGIC: 60% chance to force 0 matches (House Wins)
-    const forceLoss = Math.random() < 0.6
+    // RIGGED LOGIC: 
+    // 60% chance to force LOSS (0 matches)
+    // 40% chance to force WIN (at least 2 matches)
+    const rand = Math.random()
+    const forceLoss = rand < 0.6
+    const forceWin = !forceLoss
 
     // Draw 20 numbers (1-80)
     const drawnNumbers = new Set<number>()
@@ -35,8 +39,25 @@ function playKeno(bet: number, params: { selectedNumbers: number[] }): GameResul
             drawnNumbers.add(available[idx])
             available.splice(idx, 1)
         }
+    } else if (forceWin) {
+        // Force at least 2 matches (minimum win condition)
+        // Pick 2 numbers from selectedNumbers to guarantee a win
+        const guaranteedMatches = 2
+        const shuffledSelection = [...selectedNumbers].sort(() => 0.5 - Math.random())
+
+        for (let i = 0; i < guaranteedMatches; i++) {
+            if (i < shuffledSelection.length) {
+                drawnNumbers.add(shuffledSelection[i])
+            }
+        }
+
+        // Fill the rest with random numbers (avoiding duplicates)
+        while (drawnNumbers.size < 20) {
+            const num = Math.floor(Math.random() * 80) + 1
+            drawnNumbers.add(num)
+        }
     } else {
-        // Fair draw (20% chance)
+        // Fallback (shouldn't happen with current boolean logic, but good for safety)
         while (drawnNumbers.size < 20) {
             drawnNumbers.add(Math.floor(Math.random() * 80) + 1)
         }
@@ -77,8 +98,12 @@ function playClassicSlots(bet: number, params: { lines?: number }): GameResult {
 
     const symbols = ["🍒", "🍋", "🍊", "🍇", "🔔", "💎", "7️⃣"]
 
-    // RIGGED LOGIC: 60% chance to force a losing grid
-    const forceLoss = Math.random() < 0.6
+    // RIGGED LOGIC: 
+    // 60% chance to force LOSS
+    // 40% chance to force WIN
+    const rand = Math.random()
+    const forceLoss = rand < 0.6
+    const forceWin = !forceLoss
 
     // Define lines (coordinates)
     const paylines = [
@@ -94,7 +119,7 @@ function playClassicSlots(bet: number, params: { lines?: number }): GameResult {
     let winningLines: number[] = []
 
     if (forceLoss) {
-        // Generate grid until no wins (max attempts to avoid infinite loop)
+        // Generate grid until no wins
         let attempts = 0
         do {
             grid = [
@@ -118,13 +143,27 @@ function playClassicSlots(bet: number, params: { lines?: number }): GameResult {
             if (!hasWin) break
             attempts++
         } while (attempts < 100)
-    } else {
-        // Fair spin
+    } else if (forceWin) {
+        // Force at least one winning line
+        // 1. Generate a random grid first
         grid = [
             [symbols[Math.floor(Math.random() * symbols.length)], symbols[Math.floor(Math.random() * symbols.length)], symbols[Math.floor(Math.random() * symbols.length)]],
             [symbols[Math.floor(Math.random() * symbols.length)], symbols[Math.floor(Math.random() * symbols.length)], symbols[Math.floor(Math.random() * symbols.length)]],
             [symbols[Math.floor(Math.random() * symbols.length)], symbols[Math.floor(Math.random() * symbols.length)], symbols[Math.floor(Math.random() * symbols.length)]]
         ]
+
+        // 2. Pick a line to force a win on (from the active lines)
+        const lineIndex = Math.floor(Math.random() * linesToPlay)
+        const lineToWin = paylines[lineIndex]
+
+        // 3. Pick a winning symbol (bias towards lower paying symbols for frequent wins)
+        // 🍒, 🍋, 🍊 are lower paying
+        const winningSymbol = symbols[Math.floor(Math.random() * 3)]
+
+        // 4. Set the grid positions
+        grid[lineToWin[0].r][lineToWin[0].c] = winningSymbol
+        grid[lineToWin[1].r][lineToWin[1].c] = winningSymbol
+        grid[lineToWin[2].r][lineToWin[2].c] = winningSymbol
     }
 
     // Calculate Payout
