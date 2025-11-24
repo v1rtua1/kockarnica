@@ -24,3 +24,12 @@ export async function GET(req: Request) {
         return new NextResponse("Internal Error", { status: 500 })
     }
 }
+export async function DELETE(req: Request) {
+    try {
+        await prisma.transaction.deleteMany({})
+        return NextResponse.json({ message: "History cleared" })
+    } catch (error) {
+        console.error("[ADMIN_TRANSACTIONS_DELETE]", error)
+        return new NextResponse("Internal Error", { status: 500 })
+    }
+}
