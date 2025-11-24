@@ -21,8 +21,8 @@ function playKeno(bet: number, params: { selectedNumbers: number[] }): GameResul
         throw new Error("Invalid selection")
     }
 
-    // RIGGED LOGIC: 80% chance to force 0 matches (House Wins)
-    const forceLoss = Math.random() < 0.8
+    // RIGGED LOGIC: 60% chance to force 0 matches (House Wins)
+    const forceLoss = Math.random() < 0.6
 
     // Draw 20 numbers (1-80)
     const drawnNumbers = new Set<number>()
@@ -77,8 +77,8 @@ function playClassicSlots(bet: number, params: { lines?: number }): GameResult {
 
     const symbols = ["🍒", "🍋", "🍊", "🍇", "🔔", "💎", "7️⃣"]
 
-    // RIGGED LOGIC: 80% chance to force a losing grid
-    const forceLoss = Math.random() < 0.8
+    // RIGGED LOGIC: 60% chance to force a losing grid
+    const forceLoss = Math.random() < 0.6
 
     // Define lines (coordinates)
     const paylines = [
