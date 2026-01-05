@@ -4,12 +4,15 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import GameLayout from "@/components/GameLayout"
+// REMOVE GameLayout to have full control of mobile screen
+// import GameLayout from "@/components/GameLayout"
 import { useSession } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
+import { Settings, Menu, Zap, PlayCircle, ChevronLeft } from "lucide-react"
+import Link from "next/link"
 
 export default function EgyptSlotsPage() {
-    const { update } = useSession()
+    const { data: session, update } = useSession()
     const [spinning, setSpinning] = useState(false)
     const [grid, setGrid] = useState<string[][]>([
         ["📖", "🤴", "🐕", "🪲", "☥"],
@@ -21,7 +24,10 @@ export default function EgyptSlotsPage() {
 
     // Manual Inputs
     const [betPerLine, setBetPerLine] = useState<string>("10")
-    const [lines, setLines] = useState<number>(10) // Fixed 10 lines usually for this type, or adjustable. Let's make it adjustable 1-10.
+    const [lines, setLines] = useState<number>(10)
+
+    // Quick Spin & Autoplay Toggles (Visual only for now)
+    const [quickSpin, setQuickSpin] = useState(false)
 
     const totalBet = (parseFloat(betPerLine) || 0) * lines
 
@@ -53,14 +59,14 @@ export default function EgyptSlotsPage() {
             const data = await res.json()
 
             // Simulate spin animation
-            const spinDuration = 2000
+            const spinDuration = quickSpin ? 500 : 2000
             const symbols = ["📖", "🤴", "🐕", "🪲", "☥", "🅰️", "🇰", "🇶", "🇯", "🔟"]
 
             const interval = setInterval(() => {
                 setGrid(prev => prev.map(row => row.map(() =>
                     symbols[Math.floor(Math.random() * symbols.length)]
                 )))
-            }, 100)
+            }, 50)
 
             setTimeout(() => {
                 clearInterval(interval)
@@ -78,154 +84,184 @@ export default function EgyptSlotsPage() {
     }
 
     return (
-        <GameLayout title="Mystic Nile Gold" currentBet={totalBet} lastWin={lastWin}>
-            <div className="flex flex-col items-center w-full max-w-6xl mx-auto px-2">
+        <div className="flex flex-col h-[100dvh] w-full bg-slate-950 overflow-hidden relative text-white font-sans selection:bg-yellow-500/30">
 
-                {/* Slot Machine Frame - Egyptian Theme */}
-                <div className="relative bg-gradient-to-b from-yellow-700 via-yellow-600 to-yellow-800 p-3 md:p-8 rounded-t-full rounded-b-3xl shadow-2xl border-x-8 border-t-8 border-yellow-900 mb-6 md:mb-12 w-full">
+            {/* Background Texture/Gradient */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/40 via-slate-950 to-slate-950 pointer-events-none" />
+            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none mix-blend-overlay" />
 
-                    {/* Decorative Header */}
-                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-yellow-900 text-yellow-400 px-8 py-2 rounded-t-xl border-t-4 border-yellow-600 shadow-lg hidden md:block">
-                        <h2 className="text-2xl font-bold tracking-widest uppercase text-shadow-sm">Mystic Nile</h2>
-                    </div>
+            {/* Top Bar (Mobile Application Header) */}
+            <header className="flex items-center justify-between p-4 z-20 h-16 bg-slate-900/50 backdrop-blur-md border-b border-white/5">
+                <Link href="/dashboard">
+                    <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/5">
+                        <ChevronLeft className="w-6 h-6" />
+                    </Button>
+                </Link>
 
-                    {/* Columns Decoration */}
-                    <div className="absolute top-0 bottom-0 left-0 w-4 md:w-8 bg-gradient-to-r from-yellow-900 to-yellow-600 border-r border-yellow-950 rounded-l-3xl" />
-                    <div className="absolute top-0 bottom-0 right-0 w-4 md:w-8 bg-gradient-to-l from-yellow-900 to-yellow-600 border-l border-yellow-950 rounded-r-3xl" />
+                <h1 className="text-lg font-bold tracking-widest uppercase text-yellow-500 font-serif drop-shadow-sm">
+                    Pharaoh's Quest
+                </h1>
 
-                    {/* Screen Container */}
-                    <div className="bg-black/80 p-2 md:p-4 rounded-xl border-4 border-yellow-500/30 shadow-inner relative mx-4 md:mx-6">
+                <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/5">
+                    <Settings className="w-6 h-6" />
+                </Button>
+            </header>
 
+            {/* Main Game Area (Reels) - Takes available space */}
+            <main className="flex-1 flex flex-col items-center justify-center p-2 relative z-10 w-full max-w-lg mx-auto">
+
+                {/* Frame */}
+                <div className="relative w-full aspect-[5/3] bg-gradient-to-b from-yellow-700 via-yellow-500 to-yellow-800 p-1 rounded-xl shadow-2xl border-2 border-yellow-900 ring-4 ring-yellow-900/50 ring-offset-2 ring-offset-black/50">
+
+                    {/* Inner Screen */}
+                    <div className="w-full h-full bg-slate-900 rounded-lg overflow-hidden border-2 border-yellow-600/50 relative">
                         {/* Grid */}
-                        <div className="grid grid-rows-3 gap-1 md:gap-2">
-                            {grid.map((row, rowIndex) => (
-                                <div key={rowIndex} className="grid grid-cols-5 gap-1 md:gap-2">
-                                    {row.map((symbol, colIndex) => (
-                                        <div
-                                            key={colIndex}
-                                            className={cn(
-                                                "w-12 h-16 md:w-24 md:h-28 bg-gradient-to-b from-slate-900 to-slate-950 rounded-lg flex items-center justify-center text-3xl md:text-5xl shadow-inner border border-yellow-900/50 relative overflow-hidden",
-                                                spinning && "blur-[1px]",
-                                            )}
-                                        >
-                                            {/* Symbol shine effect */}
-                                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+                        <div className="w-full h-full grid grid-cols-5 bg-black/50">
+                            {/* We need to transpose the grid for proper column animation eventually, but keeping row-based for simplified logic now */}
+                            {/* But for map rendering, usually slots render columns. Here grid is row-major. Let's render columns vertically. 
+                                Actually the data structure is grid[row][col]. Render by column for better CSS Grid if we want vertical separators.
+                                Let's stick to simple grid-cols-5. 
+                            */}
+                            {Array.from({ length: 5 }).map((_, colIndex) => (
+                                <div key={colIndex} className="flex flex-col border-r border-yellow-500/10 last:border-r-0 relative">
+                                    {/* Render 3 rows for this column */}
+                                    {Array.from({ length: 3 }).map((_, rowIndex) => {
+                                        // Safety check
+                                        const symbol = grid[rowIndex]?.[colIndex] || "?"
 
-                                            <span className="drop-shadow-lg filter brightness-110">
-                                                {symbol}
-                                            </span>
-                                        </div>
-                                    ))}
+                                        return (
+                                            <div key={rowIndex} className="flex-1 flex items-center justify-center border-b border-yellow-500/5 last:border-b-0">
+                                                <div
+                                                    className={cn(
+                                                        "text-4xl sm:text-5xl transition-all duration-100 filter drop-shadow-lg transform",
+                                                        spinning && "blur-[2px] scale-90 opacity-80 translate-y-4" // Simple blur effect
+                                                    )}
+                                                >
+                                                    {symbol}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
                                 </div>
                             ))}
                         </div>
 
-                        {/* Paylines Indicators Overlay */}
-                        <div className="absolute inset-0 pointer-events-none">
-                            {/* Can add SVGs here for lines later */}
+                        {/* Paylines Overlay */}
+                        <div className="absolute inset-0 pointer-events-none z-20">
+                            {/* Line visualizations would go here */}
+                        </div>
+
+                        {/* Big Win Overlay in Screen */}
+                        <AnimatePresence>
+                            {lastWin > 0 && !spinning && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.5 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 1.5 }}
+                                    className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-30"
+                                >
+                                    <div className="text-center">
+                                        <div className="text-yellow-400 font-bold text-3xl uppercase tracking-widest drop-shadow-md animate-pulse">Big Win</div>
+                                        <div className="text-white font-mono text-2xl font-bold">${lastWin.toFixed(2)}</div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
+
+                {/* Info Bar under reels */}
+                <div className="w-full flex justify-between items-center mt-4 px-2 text-xs font-semibold text-slate-400 tracking-wider">
+                    <div className="flex flex-col items-start bg-slate-900/50 px-3 py-1 rounded-lg border border-white/5">
+                        <span className="text-[10px] uppercase text-slate-500">Balance</span>
+                        <span className="text-white text-sm font-mono">${session?.user?.balance?.toFixed(2) || "0.00"}</span>
+                    </div>
+
+                    <div className="flex flex-col items-end bg-slate-900/50 px-3 py-1 rounded-lg border border-white/5">
+                        <span className="text-[10px] uppercase text-slate-500">Win</span>
+                        <span className={cn("text-sm font-mono transition-colors", lastWin > 0 ? "text-green-400" : "text-white")}>
+                            ${lastWin.toFixed(2)}
+                        </span>
+                    </div>
+                </div>
+
+            </main>
+
+            {/* Bottom Controls Panel (The Deck) */}
+            <footer className="w-full bg-slate-900 p-4 pb-8 z-20 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-white/5 relative">
+
+                {/* Decorative gold line */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-yellow-500/50 rounded-full mb-2" />
+
+                <div className="flex flex-col gap-4 max-w-lg mx-auto">
+
+                    {/* Bet Controls Row */}
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 bg-slate-950/50 p-1.5 rounded-full border border-white/5">
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-10 w-10 rounded-full text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-400"
+                                onClick={() => setBetPerLine(prev => Math.max(1, (parseFloat(prev) || 0) * 0.5).toString())}
+                            >
+                                <span className="text-xl font-bold">-</span>
+                            </Button>
+
+                            <div className="flex flex-col items-center min-w-[60px]">
+                                <span className="text-[10px] text-slate-500 uppercase font-bold">Total Bet</span>
+                                <span className="text-white font-mono font-bold">${totalBet.toFixed(2)}</span>
+                            </div>
+
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-10 w-10 rounded-full text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-400"
+                                onClick={() => setBetPerLine(prev => ((parseFloat(prev) || 0) * 2).toString())}
+                            >
+                                <span className="text-xl font-bold">+</span>
+                            </Button>
+                        </div>
+
+                        {/* Toggles */}
+                        <div className="flex gap-2">
+                            <Button
+                                size="icon"
+                                variant={quickSpin ? "default" : "outline"}
+                                className={cn(
+                                    "h-10 w-10 rounded-full border-white/10 transition-all",
+                                    quickSpin ? "bg-yellow-600 hover:bg-yellow-500 text-white" : "text-slate-500 hover:text-white"
+                                )}
+                                onClick={() => setQuickSpin(!quickSpin)}
+                            >
+                                <Zap className={cn("w-4 h-4", quickSpin && "fill-current")} />
+                            </Button>
                         </div>
                     </div>
 
-                    {/* Torches (Animated placeholder) */}
-                    <div className="absolute top-1/2 -left-2 md:-left-6 w-4 h-12 md:w-6 md:h-16 bg-orange-500 blur-md animate-pulse rounded-full opacity-60" />
-                    <div className="absolute top-1/2 -right-2 md:-right-6 w-4 h-12 md:w-6 md:h-16 bg-orange-500 blur-md animate-pulse rounded-full opacity-60" />
-                </div>
-
-                {/* Controls Panel */}
-                <div className="w-full bg-slate-950/90 p-4 md:p-6 rounded-xl border border-yellow-900/30 flex flex-col md:flex-row gap-4 items-center justify-between shadow-xl">
-
-                    {/* Settings Group */}
-                    <div className="flex flex-wrap justify-center gap-4 md:gap-8 w-full md:w-auto">
-
-                        {/* Bet Per Line */}
-                        <div className="flex flex-col gap-1 items-center">
-                            <label className="text-[10px] md:text-xs text-yellow-500/70 font-bold uppercase tracking-wider">Bet / Line</label>
+                    {/* Main Action Button */}
+                    <Button
+                        onClick={spin}
+                        disabled={spinning || totalBet <= 0}
+                        className={cn(
+                            "w-full h-16 rounded-2xl text-2xl font-black uppercase tracking-widest shadow-lg transition-all transform active:scale-[0.98]",
+                            "bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-600 hover:brightness-110",
+                            "border-b-4 border-yellow-800 active:border-b-0 active:translate-y-1",
+                            "text-yellow-950 shadow-yellow-500/20"
+                        )}
+                    >
+                        {spinning ? (
                             <div className="flex items-center gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-8 w-8 md:h-10 md:w-10 border-yellow-900/50 text-yellow-500 hover:bg-yellow-900/20"
-                                    onClick={() => setBetPerLine(prev => Math.max(1, (parseFloat(prev) || 0) - 1).toString())}
-                                >-</Button>
-                                <Input
-                                    type="number"
-                                    value={betPerLine}
-                                    onChange={(e) => setBetPerLine(e.target.value)}
-                                    className="bg-black/50 border-yellow-900/50 text-yellow-400 text-center font-mono w-16 md:w-20 h-8 md:h-10"
-                                />
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-8 w-8 md:h-10 md:w-10 border-yellow-900/50 text-yellow-500 hover:bg-yellow-900/20"
-                                    onClick={() => setBetPerLine(prev => ((parseFloat(prev) || 0) + 1).toString())}
-                                >+</Button>
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                >
+                                    ↻
+                                </motion.div>
                             </div>
-                        </div>
-
-                        {/* Lines Selection */}
-                        <div className="flex flex-col gap-1 items-center">
-                            <label className="text-[10px] md:text-xs text-yellow-500/70 font-bold uppercase tracking-wider">Lines</label>
-                            <div className="flex items-center gap-1 bg-black/30 p-1 rounded-lg border border-yellow-900/30">
-                                {[1, 5, 10].map(num => (
-                                    <button
-                                        key={num}
-                                        onClick={() => setLines(num)}
-                                        className={cn(
-                                            "px-2 md:px-3 py-1 rounded text-xs md:text-sm font-bold transition-all",
-                                            lines === num
-                                                ? "bg-yellow-600 text-black shadow-lg"
-                                                : "text-yellow-600/50 hover:text-yellow-500"
-                                        )}
-                                    >
-                                        {num}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                    </div>
-
-                    {/* Center Display */}
-                    <div className="bg-black/60 px-6 py-2 rounded-lg border border-yellow-900/30 flex flex-col items-center min-w-[150px]">
-                        <span className="text-[10px] text-yellow-500/50 uppercase tracking-widest">Total Stake</span>
-                        <span className="text-xl md:text-2xl font-mono font-bold text-yellow-400">${totalBet.toFixed(2)}</span>
-                    </div>
-
-                    {/* Spin Actions */}
-                    <div className="w-full md:w-auto">
-                        <Button
-                            onClick={spin}
-                            disabled={spinning || totalBet <= 0}
-                            className="w-full md:w-40 h-14 md:h-16 bg-gradient-to-b from-green-600 to-green-800 hover:from-green-500 hover:to-green-700 text-white text-xl font-bold uppercase tracking-widest shadow-lg shadow-green-900/20 border-b-4 border-green-950 active:border-b-0 active:translate-y-1 rounded-xl transition-all"
-                        >
-                            {spinning ? <span className="animate-spin text-2xl">↻</span> : "SPIN"}
-                        </Button>
-                    </div>
-
+                        ) : "SPIN"}
+                    </Button>
                 </div>
-
-                {/* Big Win Effect */}
-                <AnimatePresence>
-                    {lastWin > 0 && (
-                        <motion.div
-                            initial={{ scale: 0.5, opacity: 0, y: 50 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 1.5, opacity: 0 }}
-                            className="fixed inset-0 flex items-center justify-center pointer-events-none z-50"
-                        >
-                            <div className="bg-black/90 p-8 md:p-12 rounded-3xl border-4 border-yellow-500 text-center shadow-2xl shadow-yellow-500/20 backdrop-blur-sm relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent animate-shimmer" />
-                                <h3 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 mb-4 drop-shadow-sm filter">BIG WIN!</h3>
-                                <p className="text-2xl md:text-4xl text-white font-bold mb-2">
-                                    ${lastWin.toFixed(2)}
-                                </p>
-                                <p className="text-yellow-400/80 uppercase tracking-widest text-sm">Congratulations!</p>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-            </div>
-        </GameLayout>
+            </footer>
+        </div>
     )
 }
