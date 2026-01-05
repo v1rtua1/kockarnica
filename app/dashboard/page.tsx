@@ -4,13 +4,14 @@ import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { LogOut, User, Coins, Gamepad2, Dices, Spade, CircleDollarSign, Grid3X3, Gem } from "lucide-react"
+import { LogOut, User, Coins, Gamepad2, Dices, Spade, CircleDollarSign, Grid3X3, Gem, BookOpen } from "lucide-react"
 
 const games = [
     { name: "Blackjack", href: "/games/blackjack", icon: Spade, color: "from-slate-700 to-slate-900" },
     { name: "Roulette", href: "/games/roulette", icon: CircleDollarSign, color: "from-red-600 to-red-800" },
     { name: "Keno", href: "/games/keno", icon: Grid3X3, color: "from-indigo-500 to-purple-700" },
     { name: "Classic Slots", href: "/games/classic-slots", icon: Gem, color: "from-yellow-400 to-yellow-600" },
+    { name: "Mystic Nile", href: "/games/egypt-slots", icon: BookOpen, color: "from-amber-500 to-yellow-800" },
 ]
 
 export default function DashboardPage() {

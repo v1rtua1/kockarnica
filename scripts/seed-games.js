@@ -12,6 +12,7 @@ async function main() {
         { slug: 'book-of-ra', name: 'Book of Ra', type: 'SLOT' },
         { slug: 'starburst', name: 'Starburst', type: 'SLOT' },
         { slug: 'lucky-lady', name: 'Lucky Lady', type: 'SLOT' },
+        { slug: 'egypt-slots', name: 'Mystic Nile Gold', type: 'SLOT' },
     ]
 
     for (const game of games) {
